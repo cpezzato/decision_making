@@ -16,21 +16,22 @@ class AiAgent(object):
         self.n_states = np.shape(self._mdp.B)[0]  # Number of states
         self.n_actions = np.shape(self._mdp.B)[2]  # Number of controls
         self.n_outcomes = self.n_states  # Number of sensory inputs, same as the states
-        self.n_iter = 4  # Varitional bayes iterations
         self.t_horizon = 2  # Time horizon to look one step ahead
-
-        # Assigning local variables to this instance of the function
+        self.F = np.zeros([self.n_policies, 1])        # Assigning local variables to this instance of the function
         # ------------------------------------------------------------------------------------------------------------------
         self.policy_indexes_v = self._mdp.V  # Indexes of possible policies
         self.policy_post_u = np.zeros([self.n_policies, self.t_horizon])  # Initialize vector to contain posterior probabilities of actions
 
-        # Prior expectation over hidden states at the beginning of the trial
-        if hasattr(self._mdp, 'd'):
-            self._mdp.D = self.aip_norm(self._mdp.d)
-        elif hasattr(self._mdp, 'D'):
+        # Normalization
+        if hasattr(self._mdp, 'D'):
             self._mdp.D = self.aip_norm(self._mdp.D)
         else:
             self._mdp.D = self.aip_norm(np.ones((self.n_states, 1)))
+
+        # Prior preferences (log probabilities) : C
+        self._mdp.C = self.aip_log(self.aip_softmax(copy.copy(self._mdp.C)))
+        # Preferences over policies
+        self._mdp.E = self.aip_log(self.aip_norm(self._mdp.E))
 
         # Likelihood matrix
         self.likelihood_A = self.aip_norm(self._mdp.A)
@@ -45,28 +46,13 @@ class AiAgent(object):
             # Retrieve backward messages, transpose of B
             self.bwd_trans_B[:, :, action] = np.transpose(self.aip_norm(self._mdp.B[:, :, action]))
 
-        # Prior preferences (log probabilities) : C
-        self.prior_C = self.aip_log(self.aip_softmax(copy.copy(self._mdp.C)))
-        # Preferences over policies
-        self.prior_E = self.aip_log(self.aip_norm(self._mdp.E))
-
-        # Current observation
-        # ------------------------------------------------------------------------------------------------------------------
-        self.outcome_o = np.zeros([1, self.t_horizon]) - 1
-        # If outcomes have been specified then set it, otherwise leave to 0
-        if hasattr(mdp, 'o'):
-            self.outcome_o[0, 0] = self._mdp.o  # Outcomes here are indicated in 'compact notation' with 1 and 2
         # Putting observations in sparse form, initialization
-        self.sparse_O = np.zeros((1, self.n_states, self.n_outcomes))  # Outcomes here are indicated as [1 0], [0 1]
+        self.sparse_O = np.zeros((1, self.n_states, self.t_horizon))  # Outcomes here are indicated as [1 0], [0 1]
 
         # Posterior states
         # ------------------------------------------------------------------------------------------------------------------
-        # Initial guess about posterior hidden states, in 'compact notation' with 1 and 2
-        self.hidden_states_s = np.zeros([1, self.t_horizon]) - 1  # Unassigned states and values are -1
-        self.hidden_states_s[0, 0] = np.argmax(self._mdp.D)  # Get index of max value and set as initial state
-
         # Initialize posterior expectation over hidden states
-        self.post_x = np.zeros([self.n_states, self.t_horizon, self.n_policies]) + 1 / self.n_states
+        self.post_x = np.zeros([self.n_states, self.t_horizon, self.n_policies]) + 1.0/self.n_states
         self.sparse_post_X = np.zeros([self.n_states, self.t_horizon])
         self.sparse_post_X[:, 0] = np.transpose(self._mdp.D)
         # Set the current state to what contained in D. At the next step it is still uncertain, so we leave it as that
@@ -74,9 +60,93 @@ class AiAgent(object):
             self.post_x[:, 0, policy] = np.transpose(self._mdp.D)
 
     def infer_states(self, obs):
-        # This method akes as argument
-        pass
+        # Update posterior over hidden states using marginal message passing
+        # Requires A, B, list of observations over time, list of policies, prior belief about initia state
+        # Returns Posterior beliefs over hidden states for each policy (s_pi_tau), and Variationl free energy for eahc policy 
+        
+        # Reset sparse observations
+        self.sparse_O = np.zeros((1, self.n_states, self.t_horizon))
+
+        for this_policy in range(self.n_policies):  # Loop over the available policies
+            self.F[this_policy] = 0  # Reset free energy for this policy 
+
+            for tau in range(self.t_horizon):  # Loop over future time points
+                # Determine state and observation sequences
+                if tau == 0:  
+                    # Initial observation from passed argument obs put it in sparse form: convert scalar index to a "1" in the  corresponding place
+                    self.sparse_O[0, obs, tau] = 1
+                else:
+                    # Sample from likelihood given hidden state. This is equivalent to o = A*s
+                    s_tau_past = np.reshape(self.post_x[:, tau - 1, this_policy], (self.n_states, 1))
+                    sampled_outcome = np.argmax(np.dot(self.likelihood_A, s_tau_past))
+                    self.sparse_O[0, sampled_outcome, tau] = 1
+
+                # Likelihood over outcomes
+                if tau <= self.t_horizon:
+                    lnA = np.dot(self.aip_log(self.likelihood_A), np.transpose(self.sparse_O[:, :, tau]))     # lnA.o_tau 
+                else:
+                    lnA = np.zeros([self.n_states, 1])
+
+                # Past messages
+                if tau == 0:
+                    lnB_past = self.aip_log(self._mdp.D)
+                else: 
+                    lnB_past = np.dot(self.aip_log(self.fwd_trans_B[:, :, self.policy_indexes_v[this_policy]]), s_tau_past) 
+
+                # Future message
+                if tau >= self.t_horizon -1:
+                    lnB_future = np.zeros([self.n_states, 1]) # No information after selected time horizon
+                else:
+                    s_tau_future = np.reshape(self.post_x[:, tau + 1, this_policy], (self.n_states, 1))
+                    lnB_future = np.dot(self.aip_log(self.bwd_trans_B[:, :, self.policy_indexes_v[this_policy]]), s_tau_future) 
+
+                # Compute posterior for this policy at this time    
+                s_pi_tau = self.aip_softmax(lnB_past + lnB_future + lnA)
+                # Update beliefs accroding to prior and normalize.
+                s_pi_tau = self.aip_norm(self._mdp.kappa_d*s_pi_tau + self._mdp.D)
+
+                # Store the posterior expectation over states
+                self.post_x[:, tau, this_policy] = np.transpose(s_pi_tau)
+
+                # Compute F
+                self.F[this_policy] = self.F[this_policy] + np.dot(self.post_x[:, tau, this_policy], self.aip_log(s_pi_tau) - lnB_past - lnA)
+
+        # print('Free energy', self.F)
+        # print('Posterior', self.post_x[:, :, :])
+        return self.F, self.post_x
+
+    def infer_policies(self):
+        # Initialize expected free energy of policies
+        self.G = np.zeros([self.n_policies, 1])
+
+        # Expected free-energy calculation
+        for this_policy in range(self.n_policies):
+            for future_time in range(1, self.t_horizon):
+                # If considering an identity mapping for the likelihood, the term diag(A.lnA).s_pi_tau is zero (ambiguity) this is always the case for us
+                # Compute posterior observation considering updated posterior state and likelihood matrix
+                o_pi_tau = np.argmax(np.dot(self.likelihood_A, np.transpose(self.post_x[:, future_time, this_policy])))
+                self.sparse_O[0, o_pi_tau, future_time] = 1
+                self.G[this_policy] = self.G[this_policy] + np.dot(self.aip_log(self.sparse_O[0, :, future_time]) - np.transpose(self._mdp.C), self.sparse_O[0, :, future_time])
+
+        # Policy posterior
+        post_pi = self.aip_softmax(self._mdp.E - self.F - self.G)
+        self.u = np.argmax(self.aip_softmax(self.aip_log(post_pi)))
+        
+        # print('Selected action', self.u)
+
+        # Bayesian model averaging of hidden states (over policies). This only influences the posterior estimates for future states, not current ones
+        # Reset variable for Bayesian model average posterior over policies and time horizon
+        self.post_x_bma = np.zeros([self.n_states, self.t_horizon])
+        for time in range(self.t_horizon):
+            for policy in range(self.n_policies):
+                self.post_x_bma[:, time] = self.post_x_bma[:, time] + self.post_x[:, time, policy]*post_pi[policy]
+
+        # Update initial state to keep track for the next iteration
+        self._mdp.D = self.post_x_bma[:, 0].reshape(3, 1)  # Take first policy (idle) at current time, so simple state update
+
+        return self.G, self.u
        
+    
     # Update observations for an agent
     def set_observation(self, obs):
         self._mdp.o = obs
@@ -93,20 +163,11 @@ class AiAgent(object):
 
     # Get current action
     def get_action(self):
-        return self._mdp.u[0]
+        return self._mdp.u
 
     # Get current best estimate of the state
     def get_current_state(self):
-        return self._mdp.s
-
-    # Get current best estimate of the state
-    def get_d(self):
-        return self._mdp.d
-
-    # Active inference routines
-
-    def infer_policies():
-        pass
+        return self._mdp.D
 
     def aip_log(self, var):
         # Natural logarithm of an element, preventing 0. The element can be a scalar, vector or matrix
