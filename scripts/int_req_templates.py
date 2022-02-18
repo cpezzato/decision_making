@@ -28,18 +28,15 @@ class MDPBattery():
         # Prior preferences. Initially none
         # -----------------------------------------------------------
         self.C = np.array([[0], [0], [0]])
-        # Belief about initial state, D
-        # -----------------------------------------------------------
-        self.D = np.array([[0.5], [0.5], [0.5]])
         # Initial guess about the states d, all equally possible, this is updated over time
         # -----------------------------------------------------------
-        self.d = np.array([[0.5], [0.5], [0.5]])
+        self.D = np.array([[0.5], [0.5], [0.5]])
         # Preference about actions. The agent prefers to move normally, slightly less to go slow, and even less to go recharge
         # -----------------------------------------------------------
         self.E = np.array([[1.5], [1.25], [1]])
-        # Learning rate for initial state update
+        # Learning rate for state update
         # -----------------------------------------------------------
-        self.kappa_d = 1
+        self.kappa_d = 0.2
 
     # Default habits
     def set_default_preferences(self):
