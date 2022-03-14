@@ -3,7 +3,6 @@
 # This is ageneral class that uses the aip module which allows to update the mdp structure given an observation and a preference. 
 # Initialized using the mdp templates 
 
-import aip 
 import numpy as np
 import copy
 
@@ -145,30 +144,7 @@ class AiAgent(object):
         self._mdp.D = self.post_x_bma[:, 0].reshape(3, 1)  # Take first policy (idle) at current time, so simple state update
 
         return self.G, self.u
-       
-    
-    # Update observations for an agent
-    def set_observation(self, obs):
-        self._mdp.o = obs
-    
-    # Update the preferences of the agent over the states it cares about
-    def set_preferences(self, pref):
-        self._mdp.C = pref
-
-    # Minimize the free energy for joint state estimation and action
-    def minimize_f(self):
-        # Update the mdp from the class constructor whenever we are required to perform action selection
-        self._mdp = aip.aip_select_action(self._mdp)
-        return self._mdp
-
-    # Get current action
-    def get_action(self):
-        return self._mdp.u
-
-    # Get current best estimate of the state
-    def get_current_state(self):
-        return self._mdp.D
-
+        
     def aip_log(self, var):
         # Natural logarithm of an element, preventing 0. The element can be a scalar, vector or matrix
         return np.log(var + 1e-16)
@@ -192,3 +168,19 @@ class AiAgent(object):
         for i in range(np.shape(var)[0]):
             var[i] = ex[i] / np.sum(ex)  # Compute softmax element by element
         return var
+    
+    # Update observations for an agent
+    def set_observation(self, obs):
+        self._mdp.o = obs
+    
+    # Update the preferences of the agent over the states it cares about
+    def set_preferences(self, pref):
+        self._mdp.C = pref
+
+    # Get current action
+    def get_action(self):
+        return self._mdp.u
+
+    # Get current best estimate of the state
+    def get_current_state(self):
+        return self._mdp.D
