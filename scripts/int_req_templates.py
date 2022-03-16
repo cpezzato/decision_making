@@ -33,15 +33,7 @@ class MDPBattery():
         self.D = np.array([[0.5], [0.5], [0.5]])
         # Preference about actions. The agent prefers to move normally, slightly less to go slow, and even less to go recharge
         # -----------------------------------------------------------
-        self.E = np.array([[1.5], [1.25], [1]])
+        self.E = np.array([[2.5], [1.5], [1.]])
         # Learning rate for state update
         # -----------------------------------------------------------
-        self.kappa_d = 0.2
-
-    # Default habits
-    def set_default_preferences(self):
-        self.E = np.array([[1.5], [1.25], [1]])
-
-    # Default initial estimate
-    def reset_belief(self):
-        self.d = np.array([[0.5], [0.5], [0.5]])
+        self.kappa_d = 0.8
