@@ -45,7 +45,7 @@ plane_params.restitution = 0
 gym.add_ground(sim, plane_params)
 
 # Load asset
-asset_root = "../../isaac_gym_mppi/assets"
+asset_root = "../assets"
 point_robot_asset_file = "urdf/pointRobot.urdf"
 print("Loading asset '%s' from '%s'" % (point_robot_asset_file, asset_root))
 asset_options = gymapi.AssetOptions()
