@@ -137,7 +137,7 @@ class AiAgent(object):
                 self.post_x_bma[:, time] = self.post_x_bma[:, time] + self.post_x[:, time, policy]*post_pi[policy]
 
         # Update initial state to keep track for the next iteration
-        self._mdp.D = self.aip_norm(self._mdp.D + self._mdp.kappa_d*self.post_x_bma[:, 0].reshape(3, 1))  # Take first policy (idle) at current time, so simple state update, and update prior D
+        self._mdp.D = self.aip_norm(self._mdp.D + self._mdp.kappa_d*self.post_x_bma[:, 0].reshape(self.n_states, 1))  # Take first policy (idle) at current time, so simple state update, and update prior D
 
         return self.G, self.u
         

@@ -4,6 +4,7 @@ from isaacgym import gymapi
 import numpy as np
 import ai_agent                      
 import int_req_templates     
+import state_action_templates 
 
 # Initialize gym
 gym = gymapi.acquire_gym()
@@ -193,33 +194,7 @@ def battery_sim(battery_level):
         new_level = 100
     return new_level
 
-###############################################################################
-###############################################################################
-
-# Active inference agent
-## Initialization
-# ----------------- 
-# Define the required mdp structures 
-mdp_battery = int_req_templates.MDPBattery() 
-
-# Define ai agent with related mdp structure to reason about
-ai_agent_internal = ai_agent.AiAgent(mdp_battery)
-
-## Decision making
-#-------------------
-# A typical sequence for decision making, ideally this should be repeated at a certain frequency
-
-# Set the preference for the battery 
-ai_agent_internal.set_preferences(np.array([[2.], [0], [0]])) # Fixed preference for battery ok, following ['ok', 'low', 'critcal'] 
-
-t_decision = 0
-battery_level = 100
-
-while not gym.query_viewer_has_closed(viewer):
-    # t = gym.get_sim_time(sim)
-
-    # Prepare observations and change robot color according to battery level
-    battery_level = battery_sim(battery_level)
+def get_battery_obs(battery_level):
     if battery_level > 55: 
         obs_battery = 0  # Battery is ok for active inference
         for n in range(num_bodies):
@@ -232,20 +207,65 @@ while not gym.query_viewer_has_closed(viewer):
         obs_battery = 2  # Battery is critical
         for n in range(num_bodies):
             gym.set_rigid_body_color(env, point_robot_handles[-1], n, gymapi.MESH_VISUAL, color_vec_battery_critical)
+    return obs_battery
+
+###############################################################################
+###############################################################################
+
+# Active inference agent
+## Initialization
+# ----------------- 
+# Define the required mdp structures 
+mdp_battery = int_req_templates.MDPBattery() 
+# Define ai agent with related mdp structure to reason about
+ai_agent_internal = ai_agent.AiAgent(mdp_battery)
+
+mdp_isAt = state_action_templates.MDPIsAt() 
+# Define ai agent with related mdp structure to reason about
+ai_agent_task = ai_agent.AiAgent(mdp_isAt)
+
+## Decision making
+#-------------------
+# A typical sequence for decision making, ideally this should be repeated at a certain frequency
+
+# Set the preference for the battery 
+ai_agent_internal.set_preferences(np.array([[5.], [0], [0]])) # Fixed preference for battery ok, following ['ok', 'low', 'critcal'] 
+ai_agent_task.set_preferences(np.array([[2.], [0]])) # Fixed preference for battery ok, following ['at_goal', 'not_at_goal']
+
+t_decision = 0
+battery_level = 100
+
+while not gym.query_viewer_has_closed(viewer):
+    # t = gym.get_sim_time(sim)
+
+    # Prepare observations and change robot color according to battery level
+    battery_level = battery_sim(battery_level)
+    o_battery = get_battery_obs(battery_level)
+
+    o_isAt = 0
 
     if t_decision == 0 or t_decision > 100:
         # Compute free energy and posterior states for each policy
-        F, post_s = ai_agent_internal.infer_states(obs_battery)
+        F, post_s = ai_agent_internal.infer_states(o_battery)
         # Compute expected free-energy and posterior over policies
         G, u = ai_agent_internal.infer_policies()
-        # Bayesian model averaging to get current state
+
+        Ft, post_st = ai_agent_task.infer_states(o_isAt)
+        # Compute expected free-energy and posterior over policies
+        Gt, ut = ai_agent_task.infer_policies()
+
         # Printouts
         print('The battery state is:',  ai_agent_internal._mdp.state_names[np.argmax(ai_agent_internal.get_current_state())])
-        #print('Belief about battery state', ai_agent_internal._mdp.D)
         print('The action is:', ai_agent_internal._mdp.action_names[u])
         print('Measured battery level', battery_level)
+
+        print('The isAt state is:',  ai_agent_task._mdp.state_names[np.argmax(ai_agent_task.get_current_state())])
+        print('The action is:', ai_agent_task._mdp.action_names[ut])
+        #print('Expected F', Gt)
         t_decision = 0
     
+    # TODO: now we have the two actions one for the task and one for the internal needs, with related expected free energies. When do we do what? 
+
     # Compute and apply control action accoridng to action selection outcome (TODO) Substitute with MPPI
     apply_control(u)
     

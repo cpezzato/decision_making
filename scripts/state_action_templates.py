@@ -5,8 +5,9 @@ import numpy as np
 
 class MDPIsAt:
     def __init__(self): 
-        self.state_name = 'isAt'    # This is the name of the state
-        self.action_name = ['Idle', 'moveTo']
+        self.state_name = 'isAt'                            # This is the general name the class refers to
+        self.state_names = ['at_goal', 'not_at_goal']                 # These are the names a certain battery state can have
+        self.action_names = ['idle', 'move_to']    # These are the names of the actions for internal needs
 
         self.V = np.array([0, 1])  # Allowable policies, it indicates policies of depth 1
         self.B = np.zeros((2, 2, 2))  # Allowable actions initiation
@@ -29,21 +30,10 @@ class MDPIsAt:
         # Belief about initial state, D
         # -----------------------------------------------------------
         self.D = np.array([[0.5], [0.5]])
-        # Initial guess about the states d, all equally possible, this is updated over time
-        # -----------------------------------------------------------
-        self.d = np.array([[0.5], [0.5]])
 
         # Preference about actions, idle is slightly preferred
         # -----------------------------------------------------------
         self.E = np.array([[1.01], [1]])
         # Learning rate for initial state update
         # -----------------------------------------------------------
-        self.kappa_d = 0.2
-
-    # Default habits
-    def set_default_preferences(self):
-        self.E = np.array([[1.01], [1]])
-
-    # Default initial estimate
-    def reset_belief(self):
-        self.d = np.array([[0.5], [0.5]])
+        self.kappa_d = 0.6
