@@ -8,7 +8,7 @@ import copy
 
 class AiAgent(object):
     def __init__(self, mdp):
-        self._mdp =  copy.copy(mdp)    # This contains the mdp structure for the active inference angent
+        self._mdp =  copy.deepcopy(mdp)    # This contains the mdp structure for the active inference angent
 
         # Initialization of variables
         self.n_policies = np.shape(self._mdp.V)[0]  # Number of allowable policies
@@ -30,6 +30,7 @@ class AiAgent(object):
         # Prior preferences (log probabilities) : C
         self._mdp.C = self.aip_log((self._mdp.C))       # Preferences over policies
         self._mdp.E = self.aip_log(self.aip_norm(self._mdp.E))
+        self.default_E = copy.deepcopy(self._mdp.E)
 
         # Likelihood matrix
         self.likelihood_A = self.aip_norm(self._mdp.A)
@@ -170,8 +171,11 @@ class AiAgent(object):
         self._mdp.o = obs
     
     # Update the preferences of the agent over the states it cares about
-    def set_preferences(self, pref):
-        self._mdp.C = self.aip_log(pref)
+    def set_preferences(self, pref, index = 'none'):
+        if index == 'none':
+            self._mdp.C = self.aip_log(pref)
+        else:
+            self._mdp.C[index] = self.aip_log(pref)
 
     # Get current action
     def get_action(self):
@@ -180,3 +184,10 @@ class AiAgent(object):
     # Get current best estimate of the state
     def get_current_state(self):
         return self._mdp.D
+
+    # Reset habits
+    def reset_habits(self, index = 'none'):
+        if index == 'none':
+            self._mdp.E = copy.deepcopy(self.default_E)
+        else:
+            self._mdp.E[index] = self.aip_log(0)
