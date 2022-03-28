@@ -28,10 +28,11 @@ ai_agent_task = ai_agent.AiAgent(mdp_isAt)
 # Set the preference being somewhere
 ai_agent_task.set_preferences(np.array([[1.], [0]])) # Fixed preference for battery ok, following ['at_goal', 'not_at_goal']
 
+
 for i in range(20):
     # Set the observation from the environment
     if i < 10:
-        obs = 1
+        obs = 0
     if i>10 and i<15:
         obs = 1
     if i>15:
