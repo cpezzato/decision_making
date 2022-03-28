@@ -5,6 +5,7 @@ import numpy as np
 import ai_agent                      
 import int_req_templates     
 import state_action_templates 
+import adaptive_action_selection
 
 # Initialize gym
 gym = gymapi.acquire_gym()
@@ -162,7 +163,7 @@ def apply_control(u):
     if u == 1: 
         # (TODO) set penalty for high velocities
         pass
-    if u == 2: 
+    if u == 'go_recharge': 
         # (TODO) set penalty for high velocities
         # Simple P controller, to be substituted
         vel_target = Kp*[docking_station_loc[0] - pos[0], docking_station_loc[1] - pos[1]]
@@ -240,34 +241,32 @@ while not gym.query_viewer_has_closed(viewer):
 
     # Prepare observations and change robot color according to battery level
     battery_level = battery_sim(battery_level)
-    o_battery = get_battery_obs(battery_level)
 
-    o_isAt = 0
-
+    # Decision making loop every second
     if t_decision == 0 or t_decision > 100:
-        # Compute free energy and posterior states for each policy
-        F, post_s = ai_agent_internal.infer_states(o_battery)
-        # Compute expected free-energy and posterior over policies
-        G, u = ai_agent_internal.infer_policies()
+        o_battery = get_battery_obs(battery_level)
+        o_isAt = 0
+        
+        outcome_task, curr_action_task = adaptive_action_selection.adapt_act_sel(ai_agent_task, o_isAt)
+        outcome_internal, curr_action_internal = adaptive_action_selection.adapt_act_sel(ai_agent_internal, o_battery)
 
-        Ft, post_st = ai_agent_task.infer_states(o_isAt)
-        # Compute expected free-energy and posterior over policies
-        Gt, ut = ai_agent_task.infer_policies()
+        t_decision = 0
 
         # Printouts
-        print('The battery state is:',  ai_agent_internal._mdp.state_names[np.argmax(ai_agent_internal.get_current_state())])
-        print('The action is:', ai_agent_internal._mdp.action_names[u])
-        print('Measured battery level', battery_level)
+        print('The selected action from the task is', curr_action_task)
+        print('The selected action from the internal requirements is', curr_action_internal)
 
-        print('The isAt state is:',  ai_agent_task._mdp.state_names[np.argmax(ai_agent_task.get_current_state())])
-        print('The action is:', ai_agent_task._mdp.action_names[ut])
-        #print('Expected F', Gt)
-        t_decision = 0
-    
+        print('The battery state is:',  ai_agent_internal._mdp.state_names[np.argmax(ai_agent_internal.get_current_state())])
+        # print('The action is:', ai_agent_internal._mdp.action_names[u])
+        # print('Measured battery level', battery_level)
+
+        # print('The isAt state is:',  ai_agent_task._mdp.state_names[np.argmax(ai_agent_task.get_current_state())])
+        # print('The action is:', ai_agent_task._mdp.action_names[ut])
+        
     # TODO: now we have the two actions one for the task and one for the internal needs, with related expected free energies. When do we do what? 
 
     # Compute and apply control action accoridng to action selection outcome (TODO) Substitute with MPPI
-    apply_control(u)
+    apply_control(curr_action_internal)
     
     t_decision = t_decision + 1
     

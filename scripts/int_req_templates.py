@@ -21,7 +21,10 @@ class MDPBattery():
         self.B[:, :, 2] = np.array([[1, 1, 1],      # go recharging (penalize velocities and trigger awareness at high level)
                                     [0, 0, 0],
                                     [0, 0, 0]]) 
-
+        # Preconditions of the actions above
+        # ----------------------------------------------------------
+        self.preconditions = [['none'], ['none'], ['none']]    # No preconditions needed for actions
+        
         # Likelihood matrix matrices
         # ----------------------------------------------------------
         self.A = np.eye(3)  # Identity mapping

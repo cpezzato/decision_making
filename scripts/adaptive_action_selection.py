@@ -7,7 +7,13 @@ def adapt_act_sel(agent, obs):
     # to be executed, if not, the loop is repeted with pushed high priority preconditions. If no action is found the algorithm returns failure. 
     
     #  At each new iteration (or tick from the BT), restore all available actions and remove high priority priors that are already satisfied
-    n_mdps = len(agent)
+    if type(agent) == list:
+        n_mdps = len(agent)
+    else:
+        # Put it in a list form if only one mdp is provided and relative observation
+        n_mdps = 1
+        agent = [agent]
+        obs = [obs]
     for i in range(n_mdps):
         agent[i].reset_habits()
         for index in range(len(agent[i]._mdp.C)):  # Loop over values in the prior
@@ -37,11 +43,11 @@ def adapt_act_sel(agent, obs):
             if not looking_for_alternatives:
                 print("No action needed")
                 outcome = 'success'
-                curr_action = 'idle'
+                curr_action = 'idle_success'
             else:
                 print("No action found for this situation")
                 outcome = 'failure'
-                curr_action = 'idle'
+                curr_action = 'idle_fail'
             break   # Exit the while loop
         # Else, we check the preconditions of the selected action, push missing states, and re-run the action selection
         else:
@@ -68,6 +74,6 @@ def adapt_act_sel(agent, obs):
                         print("Action found:", agent[i]._mdp.action_names[u[i]])
                         action_found = 1
                         outcome = 'running'
-                        curr_action = 'some_action'
+                        curr_action = agent[i]._mdp.action_names[u[i]]
                         break   # Exit the while loop
     return outcome, curr_action
