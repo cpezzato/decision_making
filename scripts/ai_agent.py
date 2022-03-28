@@ -191,3 +191,6 @@ class AiAgent(object):
             self._mdp.E = copy.deepcopy(self.default_E)
         else:
             self._mdp.E[index] = self.aip_log(0)
+
+    def reset_current_state(self):
+        self._mdp.D = self.aip_norm(np.ones((self.n_states, 1)))
