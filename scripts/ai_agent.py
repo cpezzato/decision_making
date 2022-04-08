@@ -78,7 +78,7 @@ class AiAgent(object):
 
                 # Likelihood over outcomes
                 if tau <= self.t_horizon:
-                    lnA = np.reshape(np.dot(self.aip_log(self.likelihood_A), np.transpose(self.sparse_O[:, tau])), (self.n_states, 1))     # lnA.o_tau 
+                    lnA = np.reshape(self.aip_log(np.dot(self.likelihood_A, self.sparse_O[:, tau])), (self.n_states, 1))     # lnA.o_tau 
                 else:
                     lnA = np.zeros([self.n_states, 1])
 
@@ -86,14 +86,14 @@ class AiAgent(object):
                 if tau == 0:
                     lnB_past = self.aip_log(self._mdp.D)
                 else: 
-                    lnB_past = np.dot(self.aip_log(self.fwd_trans_B[:, :, self.policy_indexes_v[this_policy]]), s_tau_past) 
+                    lnB_past = self.aip_log(np.dot(self.fwd_trans_B[:, :, self.policy_indexes_v[this_policy]], s_tau_past)) 
 
                 # Future message
                 if tau >= self.t_horizon -1:
                     lnB_future = np.zeros([self.n_states, 1]) # No information after selected time horizon
                 else:
                     s_tau_future = np.reshape(self.post_x[:, tau + 1, this_policy], (self.n_states, 1))
-                    lnB_future = np.dot(self.aip_log(self.bwd_trans_B[:, :, self.policy_indexes_v[this_policy]]), s_tau_future) 
+                    lnB_future = self.aip_log(np.dot(self.bwd_trans_B[:, :, self.policy_indexes_v[this_policy]], s_tau_future)) 
 
                 # Compute posterior for this policy at this time    
                 s_pi_tau = self.aip_softmax(lnB_past + lnB_future + lnA)
