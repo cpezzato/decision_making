@@ -33,9 +33,9 @@ for i in range(20):
     if i < 10:
         obs = 1
     if i>10 and i<15:
-        obs = 0
+        obs = 2
     if i>15:
-        obs = 0    
+        obs = 2    
     # Compute free energy and posterior states for each policy
     F, post_s = ai_agent_internal.infer_states(obs)
     # Compute expected free-energy and posterior over policies
