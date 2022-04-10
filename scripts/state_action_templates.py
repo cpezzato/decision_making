@@ -36,7 +36,7 @@ class MDPIsAt:
         self.E = np.array([[1.01], [1]])
         # Learning rate for initial state update
         # -----------------------------------------------------------
-        self.kappa_d = 0.6
+        self.kappa_d = 1
 
 class MDPIsHolding:
     def __init__(self):
@@ -71,7 +71,7 @@ class MDPIsHolding:
         self.E = np.array([[1.01], [1], [1]])
         # Learning rate for initial state update
         # -----------------------------------------------------------
-        self.kappa_d = 0.6
+        self.kappa_d = 1
 
 class MDPIsReachable:
     def __init__(self): 
@@ -107,7 +107,7 @@ class MDPIsReachable:
         self.E = np.array([[1.01], [1]])
         # Learning rate for initial state update
         # -----------------------------------------------------------
-        self.kappa_d = 0.6
+        self.kappa_d = 1
 
 class MDPIsVisible:
     def __init__(self): 
@@ -143,7 +143,7 @@ class MDPIsVisible:
         self.E = np.array([[1.01], [1]])
         # Learning rate for initial state update
         # -----------------------------------------------------------
-        self.kappa_d = 0.6
+        self.kappa_d = 1
 
 class MDPIsPlacedAt:
     def __init__(self):
@@ -180,4 +180,4 @@ class MDPIsPlacedAt:
         self.E = np.array([[1.01], [1]])
         # Learning rate for initial state update
         # -----------------------------------------------------------
-        self.kappa_d = 0.6
+        self.kappa_d = 1

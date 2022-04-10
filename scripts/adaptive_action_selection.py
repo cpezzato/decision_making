@@ -19,7 +19,7 @@ def adapt_act_sel(agent, obs):
         for index in range(len(agent[i]._mdp.C)):  # Loop over values in the prior
             if agent[i]._mdp.C[index] > 0 and index == np.argmax(agent[i].get_current_state()):
                 # Remove precondition pushed since it has been met
-                # agent[i].set_preferences(0, index)
+                agent[i].set_preferences(0, index)
                 pass
 
     # Initialize actions and current states list for this adaptive selection process
@@ -62,7 +62,7 @@ def adapt_act_sel(agent, obs):
                         if (prec[item] not in current_states) and (prec[item]!='none'):
                             _unmet_prec = 1
                             looking_for_alternatives = 1
-                            print('There are unmet preconditions for action', agent[i]._mdp.action_names[u[i]])
+                            #print('There are unmet preconditions for action', agent[i]._mdp.action_names[u[i]])
                             # Get index of missing state and push a prior on that state
                             for j in range(n_mdps):
                                 if prec[item] in agent[j]._mdp.state_names:
