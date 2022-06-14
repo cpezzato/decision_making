@@ -1,11 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Simple example to create an AI agent which selects actions to satisfy task needs
 
 import numpy as np
-import ai_agent                      
-import state_action_templates               
-import adaptive_action_selection
+from decision_making import ai_agent, state_action_templates, adaptive_action_selection
 
 ## Initialization
 # ----------------- 

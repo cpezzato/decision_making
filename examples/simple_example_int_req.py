@@ -1,10 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Simple example to create an AI agent which selects actions to satisfy internal needs
 
 import numpy as np
-import ai_agent                      
-import int_req_templates               
+from decision_making import ai_agent, int_req_templates               
 
 
 # Function to emulate gtting an observation from the environment
