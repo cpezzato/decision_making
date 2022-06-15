@@ -122,7 +122,7 @@ class AiAgent(object):
                 o_pi_tau = np.argmax(np.dot(self.fwd_trans_B[:, :, self.policy_indexes_v[this_policy]], self.post_x[:, future_time-1, this_policy]))
                 #print(o_pi_tau)
                 self.sparse_O[o_pi_tau, future_time] = 1
-                self.G[this_policy] = self.G[this_policy] + np.dot(self.aip_log(self.sparse_O[:, future_time]) - np.transpose(self._mdp.C), self.sparse_O[:, future_time])+ np.dot(np.diagonal(np.transpose(self.likelihood_A)*self.aip_log(self.likelihood_A)),np.reshape(self.post_x[:, future_time, this_policy], (len(self.post_x[:, future_time, this_policy]), 1)))
+                self.G[this_policy] = self.G[this_policy] + np.dot(self.aip_log(self.sparse_O[:, future_time]) - np.transpose(self._mdp.C), self.sparse_O[:, future_time])+ np.dot(np.diagonal(np.dot(np.transpose(self.likelihood_A),self.aip_log(self.likelihood_A))),np.reshape(self.post_x[:, future_time, this_policy], (len(self.post_x[:, future_time, this_policy]), 1)))
 
         # Policy posterior
         post_pi = self.aip_softmax(self._mdp.E - self.F - self.G)
