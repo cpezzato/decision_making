@@ -6,7 +6,7 @@ The repo contains simple examples to use the class and the adaptive action selec
 
 ## Installation
 ````bash
-    pip3 install .
+pip3 install .
 ````
 
 ### Istructions to run
