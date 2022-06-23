@@ -5,7 +5,11 @@ def adapt_act_sel(agent, obs):
     # This function computes the next best action based on the provided mdp structures. It checks for current desired states and runs an active inference loop for the ones with
     # an active preference. When an action is selected, its preconditions are checked looking at the estimatd states in the mdp structures. If they are met the action is selected 
     # to be executed, if not, the loop is repeted with pushed high priority preconditions. If no action is found the algorithm returns failure. 
-    
+
+    # Initialize actions and current states list for this adaptive selection process
+    action_found = 0
+    looking_for_alternatives = 0
+
     #  At each new iteration (or tick from the BT), restore all available actions and remove high priority priors that are already satisfied
     if type(agent) == list:
         n_mdps = len(agent)
@@ -17,16 +21,22 @@ def adapt_act_sel(agent, obs):
     for i in range(n_mdps):
         agent[i].reset_habits()
         for index in range(len(agent[i]._mdp.C)):  # Loop over values in the prior
-            if agent[i]._mdp.C[index] > 0 and index == np.argmax(agent[i].get_current_state()):
+            if agent[i]._mdp.C[index] > 0 and index == obs[i]:        
                 # Remove precondition pushed since it has been met
+                print('removed preference state', i)
                 agent[i].set_preferences(0, index)
-                pass
+            
+    # Remove preconditions pushed if initial state that originated those is met
+    for i in range(n_mdps):
+        for index in range(len(agent[i]._mdp.C)):  # Loop over values in the prior
+            if agent[i]._mdp.C[index] == 0 and index == obs[i]: 
+                outcome = 'success'
+                curr_action = 'idle_success'
+                action_found = 1
+                break
 
-    # Initialize actions and current states list for this adaptive selection process
-    action_found = 0
     u = [-1]*n_mdps
     current_states = ['null']*n_mdps
-    looking_for_alternatives = 0
 
     while action_found == 0:
         for i in range(n_mdps):
