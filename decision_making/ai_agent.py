@@ -139,6 +139,10 @@ class AiAgent(object):
 
         # Update initial state to keep track for the next iteration
         self._mdp.D = self.aip_norm(self._mdp.D + self._mdp.kappa_d*self.post_x_bma[:, 0].reshape(self.n_states, 1))  # Take first policy (idle) at current time, so simple state update, and update prior D
+        for i in range(len(self._mdp.D)):
+            if self._mdp.D[i] < 0.00001:
+                self._mdp.D[i] = 0
+        self._mdp.D = self.aip_norm(self._mdp.D)
 
         return self.G, self.u
         
