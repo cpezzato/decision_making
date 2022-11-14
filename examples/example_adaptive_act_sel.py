@@ -36,7 +36,7 @@ for i in range(25):
         obs = ['null', 0, 0, 1, 0]  
     if i>= 20:
         obs = ['null', 1, 0, 0, 0]  
-    # To test parallel adaptive action selection swap commented lines 41 and 40, or see 'example_parallel_act_sel.py'
+    # To test regular adaptive action selection swap commented lines 41 and 40
     outcome, curr_acti = adaptive_action_selection.adapt_act_sel(ai_agent_task, obs)
     # outcome, curr_acti = parallel_action_selection.par_act_sel(ai_agent_task, obs)
     print(outcome)

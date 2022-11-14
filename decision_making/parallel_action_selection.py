@@ -1,5 +1,6 @@
 # Module for adaptive action selection
 import numpy as np
+import copy 
 
 def par_act_sel(agent, obs):
     # This function computes the next best action based on the provided mdp structures. It checks for current desired states and runs an active inference loop for the ones with
@@ -40,7 +41,7 @@ def par_act_sel(agent, obs):
     u = [-1]*n_mdps
     current_states = ['null']*n_mdps
     
-    # Instead of stopping as soon as we find a losution, keep looking for alternativ actions after removing already found ones 
+    # Instead of stopping as soon as we find a solution, keep looking for alternativ actions after removing already found ones 
     while True and 'idle_success' not in curr_action_plan:
         for i in range(n_mdps):
             # Compute free energy and posterior states for each policy if an observation is vailable
@@ -95,7 +96,22 @@ def par_act_sel(agent, obs):
                         agent[i].reset_habits(u[i])
                         some_action_found += 1
                         outcome = 'running'
-                        curr_action_plan.append([agent[i]._mdp.action_names[u[i]]])
+                        curr_action_plan.append([agent[i]._mdp.action_names[u[i]], i])
                         #break   # Exit the while loop
-            # time_step += 1     
-    return outcome, curr_action_plan
+    
+    # Parallelize current applicable actions
+    parall_plans = []
+    if 'idle_success' not in curr_action_plan:
+        for index in range(len(curr_action_plan)):
+            parall_plans.append(list(copy.deepcopy(curr_action_plan[index])))
+            for k in range(len(curr_action_plan)):
+                if curr_action_plan[k][1] not in parall_plans[index]:
+                    parall_plans[index].append(copy.deepcopy(curr_action_plan[k][0]))
+                    parall_plans[index].append(copy.deepcopy(curr_action_plan[k][1]))
+
+        # Remove component numbers and duplicates
+        for index in range(len(curr_action_plan)):
+            parall_plans[index] = [x for x in parall_plans[index] if not isinstance(x, int)]
+        parall_plans = list(map(list, set(map(tuple, map(set, parall_plans)))))
+
+    return outcome, parall_plans
