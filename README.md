@@ -9,6 +9,12 @@ The repo contains simple examples to use the class and the adaptive action selec
 pip3 install .
 ````
 
+For allowing local changes
+##
+````bash
+python3 -m pip install -e .
+````
+
 ### Istructions to run
 Test an example script from the example folder:
 

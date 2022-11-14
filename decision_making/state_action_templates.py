@@ -42,19 +42,21 @@ class MDPIsHolding:
     def __init__(self):
         self.state_name = 'isHolding'                            # This is the general name the class refers to
         self.state_names = ['holding_obj', 'not_holding_obj']                 # These are the names a certain battery state can have
-        self.action_names = ['idle', 'pick', 'place_somewhere']    # These are the names of the actions for internal needs
+        self.action_names = ['idle', 'pickRight', 'pickLeft', 'place_somewhere']    # These are the names of the actions for internal needs
 
-        self.V = np.array([0, 1, 2])  # Allowable policies, it indicates policies of depth 1
-        self.B = np.zeros((2, 2, 3))  # Allowable actions initiation
+        self.V = np.array([0, 1, 2, 3])  # Allowable policies, it indicates policies of depth 1
+        self.B = np.zeros((2, 2, 4))  # Allowable actions initiation
         # Transition matrices
         # ----------------------------------------------------------
         self.B[:, :, 0] = np.eye(2)  # Idle action
-        self.B[:, :, 1] = np.array([[1, 1],  # Pick action
+        self.B[:, :, 1] = np.array([[1, 1],  # PickRight action
                                     [0, 0]])
-        self.B[:, :, 2] = np.array([[0, 0],  # Place_somewhere action
+        self.B[:, :, 2] = np.array([[1, 1],  # PickLeft action
+                                    [0, 0]])
+        self.B[:, :, 3] = np.array([[0, 0],  # Place_somewhere action
                                     [1, 1]])
         # Preconditions of the actions above
-        self.preconditions = [['none'], ['not_holding_obj', 'reachable', 'visible'], ['none']] # [Idle precondition], [pick preconditions], [place precondition]  
+        self.preconditions = [['none'], ['not_holding_obj', 'reachable', 'visible'], ['not_holding_obj', 'reachable', 'visible'], ['none']] # [Idle precondition], [pickRight preconditions], [pickLeft preconditions], [place precondition]  
 
         # Likelihood matrix matrices
         # ----------------------------------------------------------
@@ -68,7 +70,7 @@ class MDPIsHolding:
         
         # Preference about actions, idle is slightly preferred
         # -----------------------------------------------------------
-        self.E = np.array([[1.01], [1], [1]])
+        self.E = np.array([[1.01], [1], [1], [1]])
         # Learning rate for initial state update
         # -----------------------------------------------------------
         self.kappa_d = 1
@@ -77,19 +79,20 @@ class MDPIsReachable:
     def __init__(self): 
         self.state_name = 'isReachable'                            # This is the general name the class refers to
         self.state_names = ['reachable', 'not_reachable']                 # These are the names a certain battery state can have
-        self.action_names = ['idle', 'move_to_reach']    # These are the names of the actions for internal needs
+        self.action_names = ['idle', 'move_to_reach', 'move_to_reach_2']    # These are the names of the actions for internal needs
 
-        self.V = np.array([0, 1])  # Allowable policies, it indicates policies of depth 1
-        self.B = np.zeros((2, 2, 2))  # Allowable actions initiation
+        self.V = np.array([0, 1, 2])  # Allowable policies, it indicates policies of depth 1
+        self.B = np.zeros((2, 2, 3))  # Allowable actions initiation
         # Transition matrices
         # ----------------------------------------------------------
         self.B[:, :, 0] = np.eye(2)             # Idle action
         self.B[:, :, 1] = np.array([[1, 1],     # move_to_reach
                                     [0, 0]])
-
+        self.B[:, :, 2] = np.array([[1, 1],     # move_to_reach2
+                                    [0, 0]])
         # Preconditions of the actions above
         # ----------------------------------------------------------
-        self.preconditions = [['none'], ['none']]    # No preconditions needed for Idle and move_to_reach                       
+        self.preconditions = [['none'], ['none'], ['none']]    # No preconditions needed for Idle and move_to_reach                       
            
 
         # Likelihood matrix matrices
@@ -104,7 +107,7 @@ class MDPIsReachable:
 
         # Preference about actions, idle is slightly preferred
         # -----------------------------------------------------------
-        self.E = np.array([[1.01], [1]])
+        self.E = np.array([[1.01], [1], [1]])
         # Learning rate for initial state update
         # -----------------------------------------------------------
         self.kappa_d = 1
@@ -148,7 +151,7 @@ class MDPIsVisible:
 class MDPIsPlacedAt:
     def __init__(self):
         self.state_name = 'isInBasket'                                                  # This is the general name the class refers to
-        self.state_names = ['placed_in_basket', 'not_placed_in_basket']                 # These are the names a certain battery state can have
+        self.state_names = ['placed_in_basket', 'not_placed_in_basket']                 # These are the names a certain state can have
         self.action_names = ['idle', 'place_in_basket']    # These are the names of the actions for internal needs
 
         self.V = np.array([0, 1])       # Allowable policies, it indicates policies of depth 1
