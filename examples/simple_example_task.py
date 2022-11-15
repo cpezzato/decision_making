@@ -5,8 +5,6 @@
 import numpy as np
 from decision_making import ai_agent, state_action_templates               
 
-
-# Function to emulate gtting an observation from the environment
 def get_obs_env():
     # For the isAt state we only have two values,  ['at_goal', 'not_at_goal'] = [0, 1]. The observation will depend on the actual position of the robot in the sim
     obs = 0   # True

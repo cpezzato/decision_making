@@ -5,12 +5,12 @@ import numpy as np
 
 class MDPBattery():
     def __init__(self): 
-        self.state_name = 'batteryState'                            # This is the general name the class refers to
-        self.state_names = ['ok', 'low', 'critcal']                 # These are the names a certain battery state can have
-        self.action_names = ['go_normal', 'slow_down', 'go_recharge']    # These are the names of the actions for internal needs
+        self.state_name = 'batteryState'                                    # This is the general name the class refers to
+        self.state_names = ['ok', 'low', 'critcal']                         # These are the names a certain battery state can have
+        self.action_names = ['go_normal', 'slow_down', 'go_recharge']       # These are the names of the actions for internal needs
 
-        self.V = np.array([0, 1, 2])            # Allowable policies, it indicates policies of depth 1 (there are 3 policies)
-        self.B = np.zeros((3, 3, 3))            # Allowable actions initiation
+        self.V = np.array([0, 1, 2])                                        # Allowable policies, it indicates policies of depth 1 (there are 3 policies)
+        self.B = np.zeros((3, 3, 3))                                        # Allowable actions initiation
         
         # Transition matrices corecponding to the actions
         # ----------------------------------------------------------
@@ -21,6 +21,7 @@ class MDPBattery():
         self.B[:, :, 2] = np.array([[1, 1, 1],      # go recharging (penalize velocities and trigger awareness at high level)
                                     [0, 0, 0],
                                     [0, 0, 0]]) 
+                                    
         # Preconditions of the actions above
         # ----------------------------------------------------------
         self.preconditions = [['none'], ['none'], ['none']]    # No preconditions needed for actions
