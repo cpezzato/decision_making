@@ -1,7 +1,11 @@
 ## Agent class
+
 # This script contains the active inference agent class. 
 # This is ageneral class that uses the aip module which allows to update the mdp structure given an observation and a preference. 
 # Initialized using the mdp templates 
+
+# Author: Corrado Pezzato, TU Delft
+# Last revision: 15.11.22
 
 import numpy as np
 import copy
@@ -11,14 +15,14 @@ class AiAgent(object):
         self._mdp =  copy.deepcopy(mdp)    # This contains the mdp structure for the active inference angent
 
         # Initialization of variables
-        self.n_policies = np.shape(self._mdp.V)[0]  # Number of allowable policies
-        self.n_states = np.shape(self._mdp.B)[0]  # Number of states
-        self.n_actions = np.shape(self._mdp.B)[2]  # Number of controls
-        self.n_outcomes = self.n_states  # Number of sensory inputs, same as the states
-        self.t_horizon = 2  # Time horizon to look one step ahead
-        self.F = np.zeros([self.n_policies, 1])        # Assigning local variables to this instance of the function
+        self.n_policies = np.shape(self._mdp.V)[0]      # Number of allowable policies
+        self.n_states = np.shape(self._mdp.B)[0]        # Number of states
+        self.n_actions = np.shape(self._mdp.B)[2]       # Number of controls
+        self.n_outcomes = self.n_states                 # Number of sensory inputs, same as the states
+        self.t_horizon = 2                              # Time horizon to look one step ahead
+        self.F = np.zeros([self.n_policies, 1])         # Assigning local variables to this instance of the function
         # ------------------------------------------------------------------------------------------------------------------
-        self.policy_indexes_v = self._mdp.V  # Indexes of possible policies
+        self.policy_indexes_v = self._mdp.V             # Indexes of possible policies
         self.policy_post_u = np.zeros([self.n_policies, self.t_horizon])  # Initialize vector to contain posterior probabilities of actions
 
         # Normalization
@@ -48,7 +52,7 @@ class AiAgent(object):
     def infer_states(self, obs):
         # Update posterior over hidden states using marginal message passing
         # Requires A, B, list of observations over time, list of policies, prior belief about initia state
-        # Returns Posterior beliefs over hidden states for each policy (s_pi_tau), and Variationl free energy for eahc policy 
+        # Returns Posterior beliefs over hidden states for each policy (s_pi_tau), and Variationl free energy for each policy 
         
         # Posterior states
         # ------------------------------------------------------------------------------------------------------------------
@@ -57,7 +61,6 @@ class AiAgent(object):
 
         # Set the current state to what contained in D. At the next step it is still uncertain
         for policy in range(self.n_policies):
-            #for time in range(self.t_horizon):
             self.post_x[:, 0, policy] = np.transpose(self._mdp.D)
 
         for this_policy in range(self.n_policies):  # Loop over the available policies
@@ -103,9 +106,6 @@ class AiAgent(object):
 
                 # Compute F
                 self.F[this_policy] = self.F[this_policy] + np.dot(self.post_x[:, tau, this_policy], self.aip_log(s_pi_tau) - lnB_past - lnA)
-
-        # print('Free energy', self.F)
-        # print('Posterior', self.post_x[:, :, :])
         return self.F, self.post_x
 
     def infer_policies(self):
@@ -120,7 +120,6 @@ class AiAgent(object):
                 # o_pi_tau = np.argmax(np.dot(self.likelihood_A, np.transpose(self.post_x[:, future_time, this_policy])))
                 self.sparse_O[:, future_time] = 0
                 o_pi_tau = np.argmax(np.dot(self.fwd_trans_B[:, :, self.policy_indexes_v[this_policy]], self.post_x[:, future_time-1, this_policy]))
-                #print(o_pi_tau)
                 self.sparse_O[o_pi_tau, future_time] = 1
                 self.G[this_policy] = self.G[this_policy] + np.dot(self.aip_log(self.sparse_O[:, future_time]) - np.transpose(self._mdp.C), self.sparse_O[:, future_time])+ np.dot(np.diagonal(np.dot(np.transpose(self.likelihood_A),self.aip_log(self.likelihood_A))),np.reshape(self.post_x[:, future_time, this_policy], (len(self.post_x[:, future_time, this_policy]), 1)))
 
@@ -128,8 +127,6 @@ class AiAgent(object):
         post_pi = self.aip_softmax(self._mdp.E - self.F - self.G)
         self.u = np.argmax(self.aip_softmax(self.aip_log(post_pi)))
         
-        #print('Selected action', self.u)
-
         # Bayesian model averaging of hidden states (over policies). This only influences the posterior estimates for future states, not current ones
         # Reset variable for Bayesian model average posterior over policies and time horizon
         self.post_x_bma = np.zeros([self.n_states, self.t_horizon])
@@ -152,9 +149,6 @@ class AiAgent(object):
 
     def aip_norm(self, var):
         # Normalisation of probability matrix (column elements sum to 1)
-        # The function goes column by column and it normalise such that the
-        # elements of each column sum to 1
-        # In case of a matrix
         for column_id in range(np.shape(var)[1]):  # Loop over the number of columns
             sum_column = np.sum(var[:, column_id])
             if sum_column > 0:

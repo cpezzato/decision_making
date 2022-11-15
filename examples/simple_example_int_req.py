@@ -27,13 +27,13 @@ ai_agent_internal = ai_agent.AiAgent(mdp_battery)
 # Set the preference for the battery 
 ai_agent_internal.set_preferences(np.array([[2.], [0], [0]])) # Fixed preference for battery ok, following ['ok', 'low', 'critcal'] 
 
-for i in range(20):
+for i in range(15):
     # Set the observation from the environment
-    if i < 10:
+    if i < 5:
+        obs = 0
+    if i>= 5 and i <10:
         obs = 1
-    if i>10 and i<15:
-        obs = 2
-    if i>15:
+    if i>= 10:
         obs = 2    
     # Compute free energy and posterior states for each policy
     F, post_s = ai_agent_internal.infer_states(obs)

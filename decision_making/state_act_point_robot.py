@@ -5,12 +5,13 @@ import numpy as np
 
 class MDPIsAt:
     def __init__(self): 
-        self.state_name = 'isAt'                            # This is the general name the class refers to
-        self.state_names = ['at_goal', 'not_at_goal']                 # These are the names a certain battery state can have
-        self.action_names = ['idle', 'move_to']    # These are the names of the actions for internal needs
+        self.state_name = 'isAt'                                # This is the general name the class refers to
+        self.state_names = ['at_goal', 'not_at_goal']           # These are the names a certain battery state can have
+        self.action_names = ['idle', 'move_to']                 # These are the names of the actions for internal needs
 
-        self.V = np.array([0, 1])  # Allowable policies, it indicates policies of depth 1
-        self.B = np.zeros((2, 2, 2))  # Allowable actions initiation
+        self.V = np.array([0, 1])                               # Allowable policies, it indicates policies of depth 1
+        self.B = np.zeros((2, 2, 2))                            # Allowable actions initiation
+
         # Transition matrices
         # ----------------------------------------------------------
         self.B[:, :, 0] = np.eye(2)  # Idle action
@@ -40,12 +41,12 @@ class MDPIsAt:
 
 class MDPIsLocFree:
     def __init__(self):
-        self.state_name = 'isLocFree'                                               # This is the general name the class refers to
+        self.state_name = 'isLocFree'                                              
         self.state_names = ['loc_free', 'not_loc_free']                     
         self.action_names = ['idle', 'push_to_non_goal', 'pull_to_non_goal']        
 
-        self.V = np.array([0, 1, 2])       # Allowable policies, it indicates policies of depth 1
-        self.B = np.zeros((2, 2, 3))    # Allowable actions initiation (idle and place_in_basket)
+        self.V = np.array([0, 1, 2]) 
+        self.B = np.zeros((2, 2, 3)) 
         # Transition matrices
         # ----------------------------------------------------------
         self.B[:, :, 0] = np.eye(2)             # Idle action
@@ -79,12 +80,12 @@ class MDPIsLocFree:
 
 class MDPIsBlockAt:
     def __init__(self):
-        self.state_name = 'isBlockAt'                                               # This is the general name the class refers to
+        self.state_name = 'isBlockAt'                                              
         self.state_names = ['block_at_loc', 'not_block_at_loc']                     
         self.action_names = ['idle', 'push_to_goal', 'pull_to_goal']        
 
-        self.V = np.array([0, 1, 2])       # Allowable policies, it indicates policies of depth 1
-        self.B = np.zeros((2, 2, 3))    # Allowable actions initiation (idle and place_in_basket)
+        self.V = np.array([0, 1, 2])      
+        self.B = np.zeros((2, 2, 3))    
         # Transition matrices
         # ----------------------------------------------------------
         self.B[:, :, 0] = np.eye(2)             # Idle action

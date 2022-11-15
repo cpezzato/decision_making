@@ -26,8 +26,7 @@ for i in range(15):
         obs = [1, 1, 0]
     if i>= 10 and i < 15:
         obs = [1, 0, 0]    
-    # outcome, curr_acti = adaptive_action_selection.adapt_act_sel(ai_agent_task, obs)
+
     outcome, curr_plan = parallel_action_selection.par_act_sel(ai_agent_task, obs)
     print(outcome)
     print('Current plan', curr_plan)
-#print("--- %s seconds ---" % (time.time() - start_time))
