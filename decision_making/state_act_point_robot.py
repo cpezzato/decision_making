@@ -39,6 +39,42 @@ class MDPIsAt:
         # -----------------------------------------------------------
         self.kappa_d = 1
 
+class MDPIsCloseTo:
+    def __init__(self): 
+        self.state_name = 'isCloseTo'                               
+        self.state_names = ['close_to', 'not_close_to']          
+        self.action_names = ['idle', 'approach_obj']                 
+
+        self.V = np.array([0, 1])                              
+        self.B = np.zeros((2, 2, 2))                           
+
+        # Transition matrices
+        # ----------------------------------------------------------
+        self.B[:, :, 0] = np.eye(2)  # Idle action
+        self.B[:, :, 1] = np.array([[1, 1],  # apprach 
+                                    [0, 0]])
+
+        # Preconditions of the actions above
+        # ----------------------------------------------------------
+        self.preconditions = [['none'], ['none']]    # No preconditions needed                 
+
+        # Likelihood matrix matrices
+        # ----------------------------------------------------------
+        self.A = np.eye(2)  # Identity mapping
+        # Prior preferences, initially set to zero, so no preference
+        # -----------------------------------------------------------
+        self.C = np.array([[0.], [0.]])
+        # Belief about initial state, D
+        # -----------------------------------------------------------
+        self.D = np.array([[0.5], [0.5]])
+
+        # Preference about actions, idle is slightly preferred
+        # -----------------------------------------------------------
+        self.E = np.array([[1.01], [1]])
+        # Learning rate for initial state update
+        # -----------------------------------------------------------
+        self.kappa_d = 1
+
 class MDPIsLocFree:
     def __init__(self):
         self.state_name = 'isLocFree'                                              
@@ -57,7 +93,7 @@ class MDPIsLocFree:
 
         # Preconditions of the actions above
         # ----------------------------------------------------------
-        self.preconditions = [['none'], ['none'], ['none']]                 
+        self.preconditions = [['none'], ['close_to'], ['close_to']]                 
 
         # Likelihood matrix matrices
         # ----------------------------------------------------------
@@ -96,7 +132,7 @@ class MDPIsBlockAt:
 
         # Preconditions of the actions above
         # ----------------------------------------------------------
-        self.preconditions = [['none'], ['loc_free'], ['loc_free']]                 
+        self.preconditions = [['none'], ['loc_free', 'close_to'], ['loc_free', 'close_to']]                 
 
         # Likelihood matrix matrices
         # ----------------------------------------------------------
@@ -116,3 +152,4 @@ class MDPIsBlockAt:
         # Learning rate for initial state update
         # -----------------------------------------------------------
         self.kappa_d = 1
+
