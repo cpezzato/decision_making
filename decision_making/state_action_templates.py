@@ -81,20 +81,19 @@ class MDPIsReachable:
     def __init__(self): 
         self.state_name = 'isReachable'                            
         self.state_names = ['reachable', 'not_reachable']                
-        self.action_names = ['idle', 'move_to_reach_base', 'move_to_reach_whole_body']    
+        self.action_names = ['idle', 'move_to_reach']    
 
-        self.V = np.array([0, 1, 2])  # Allowable policies, it indicates policies of depth 1
-        self.B = np.zeros((2, 2, 3))  # Allowable actions initiation
+        self.V = np.array([0, 1])  # Allowable policies, it indicates policies of depth 1
+        self.B = np.zeros((2, 2, 2))  # Allowable actions initiation
         # Transition matrices
         # ----------------------------------------------------------
         self.B[:, :, 0] = np.eye(2)             # Idle action
-        self.B[:, :, 1] = np.array([[1, 1],     # move_to_reach_base
+        self.B[:, :, 1] = np.array([[1, 1],     # move_to_reach
                                     [0, 0]])
-        self.B[:, :, 2] = np.array([[1, 1],     # move_to_reach_whole_body
-                                    [0, 0]])
+
         # Preconditions of the actions above
         # ----------------------------------------------------------
-        self.preconditions = [['none'], ['none'], ['none']]    # No preconditions needed for Idle and move_to_reach                       
+        self.preconditions = [['none'], ['none']]    # No preconditions needed for Idle and move_to_reach                       
            
 
         # Likelihood matrix matrices
@@ -109,7 +108,7 @@ class MDPIsReachable:
 
         # Preference about actions, idle is slightly preferred
         # -----------------------------------------------------------
-        self.E = np.array([[1.01], [1], [1]])
+        self.E = np.array([[1.01], [1]])
         # Learning rate for initial state update
         # -----------------------------------------------------------
         self.kappa_d = 1
