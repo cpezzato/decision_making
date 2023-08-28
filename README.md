@@ -4,6 +4,10 @@ This repo contains discrete active inference for combining external goals and in
 
 The repo contains simple examples to use the class and the adaptive action selection algorithm. 
 
+If you find this work useful, please consider citing the connected paper: 
+
+- *Pezzato, Corrado, Carlos Hernández Corbato, Stefan Bonhof, and Martijn Wisse. "Active inference and behavior trees for reactive action planning and execution in robotics." IEEE Transactions on Robotics 39, no. 2 (2023): 1050-1069*
+
 ## Installation
 Install the package with:
 ````bash
